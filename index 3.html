@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智科知识库 | Tech Knowledge Base</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+         .loader-inner {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: rotate 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .loader-ring:nth-child(2) {
+            border-top-color: var(--text-color);
+            animation-delay: -0.5s;
+        }
+
+        .loader-text {
+            position: absolute;
+            bottom: -40px;
+            width: 100%;
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 500;
+            letter-spacing: 2px;
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        :root {
+            --bg-color: #0a192f;
+            --primary-color: #64ffda;
+            --text-color: #ccd6f6;
+            --card-bg: #112240;
+            --hover-effect: drop-shadow(0 0 15px rgba(100, 255, 218, 0.2));
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 头部样式 */
+        .header {
+            background: linear-gradient(135deg, #0a192f 0%, #020c1b 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .title {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, var(--primary-color), #4bffd0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            color: #8892b0;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* 搜索容器 */
+        .search-container {
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: var(--card-bg);
+            border: 2px solid rgba(100, 255, 218, 0.2);
+            border-radius: 50px;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.2);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--primary-color), #4bffd0);
+            border: none;
+            border-radius: 50px;
+            color: var(--bg-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.3);
+        }
+
+        /* 搜索结果样式 */
+        .search-results {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 100;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .search-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-item:hover {
+            background: rgba(100, 255, 218, 0.05);
+            transform: translateX(10px);
+        }
+
+        .search-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* 主内容容器 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        /* 分类看板 */
+        .category-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .category-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(100, 255, 218, 0.1),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .category-card:hover::after {
+            left: 100%;
+        }
+
+        /* 问题列表 */
+        .qa-list {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .qa-item {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .qa-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .category-tag {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: var(--primary-color);
+            color: var(--bg-color);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        /* 控制栏 */
+        .control-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, var(--primary-color), #4bffd0);
+            border: none;
+            border-radius: 30px;
+            color: var(--bg-color);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* 页脚 */
+        .footer {
+            margin-top: auto;
+            padding: 2rem;
+            background: #020c1b;
+            text-align: center;
+            color: #8892b0;
+            border-top: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        @keyframes highlight {
+            0% { background: rgba(100, 255, 218, 0.1); }
+            100% { background: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+         <div class="loader" v-if="isLoading">
+            <div class="loader-inner">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <span class="loader-text">INITIALIZING...</span>
+            </div>
+        </div>
+        <header class="header">
+            <h1 class="title">Tech Knowledge Base</h1>
+            <p class="description">
+                汇聚前沿技术问答，打造智能知识中枢。本库收录人工智能、区块链、云计算等12大领域权威解答，
+                采用先进知识管理架构，支持智能检索与批量维护，助力技术团队高效知识沉淀。
+            </p>
+            
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input"
+                    placeholder="输入关键词进行全局搜索..."
+                    v-model="searchKeyword"
+                    @keyup.enter="performSearch"
+                >
+                <button class="search-btn" @click="performSearch">搜索</button>
+                
+                <div class="search-results" v-if="showSearchResults">
+                    <div 
+                        class="search-item" 
+                        v-for="(result, index) in searchResults" 
+                        :key="index"
+                        @click="jumpToQuestion(result)"
+                    >
+                        <h3 v-html="highlightText(result.question)"></h3>
+                        <p v-html="highlightText(result.answer)"></p>
+                        <div class="category-tag">{{ result.category }}</div>
+                    </div>
+                    <div v-if="searchResults.length === 0" class="search-item">
+                        未找到相关结果
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- 全局返回按钮 -->
+            <div class="control-bar" v-if="selectedCategory || showSearchResults">
+                <button 
+                    class="control-btn"
+                    @click="returnToHome"
+                >
+                    {{ selectedCategory ? '← 返回分类' : '← 返回主页' }}
+                </button>
+            </div>
+
+            <div v-if="!selectedCategory && !showSearchResults">
+                <div class="control-bar">
+                    <button class="control-btn" @click="exportData('excel')">
+                        📤 导出数据
+                    </button>
+                    <button class="control-btn" @click="triggerImport">
+                        📥 导入数据
+                    </button>
+                    <input type="file" ref="fileInput" @change="handleFile" hidden>
+                </div>
+
+                <div class="category-board">
+                    <div 
+                        v-for="(cat, index) in categories" 
+                        :key="cat"
+                        class="category-card"
+                        @click="selectCategory(cat)"
+                    >
+                        <h2>{{ cat }}</h2>
+                        <div class="stats">
+                            <p>📚 知识条目：{{ getQuestionCount(cat) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else-if="selectedCategory">
+                <div class="qa-list">
+                    <div 
+                        v-for="(qa, index) in filteredQA" 
+                        :key="qa.question"
+                        class="qa-item"
+                        :id="'qa-' + generateId(qa.question)"
+                    >
+                        <div class="category-tag">{{ qa.category }}</div>
+                        <h3>{{ qa.question }}</h3>
+                        <p>{{ qa.answer }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2024 智科知识库 | 数据驱动决策 知识赋能未来</p>
+            <p>Powered by AI Knowledge Engine v2.0</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.18.12/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <script>
+ 
+        const INITIAL_CATEGORIES = [
+            '人工智能', '编程基础', '前端开发', '后端开发',
+            '数据科学', '网络安全', '移动开发', '云计算',
+            '物联网', '区块链', '游戏开发', '职业发展'
+        ];
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    qaList: JSON.parse(localStorage.getItem('qaData')) || [],
+                    selectedCategory: null,
+                    searchKeyword: '',
+                    showSearchResults: false
+                }
+            },
+            computed: {
+                categories() {
+                    return INITIAL_CATEGORIES;
+                },
+                filteredQA() {
+                    return this.qaList
+                        .filter(q => q.category === this.selectedCategory);
+                },
+                searchResults() {
+                    if (!this.searchKeyword.trim()) return [];
+                    const keyword = this.searchKeyword.toLowerCase();
+                    return this.qaList.filter(q => 
+                        q.question.toLowerCase().includes(keyword) || 
+                        q.answer.toLowerCase().includes(keyword)
+                    ).slice(0, 20);
+                }
+            },
+            methods: {
+                selectCategory(cat) {
+                    this.selectedCategory = cat;
+                    this.showSearchResults = false;
+                },
+                getQuestionCount(cat) {
+                    return this.qaList.filter(q => q.category === cat).length;
+                },
+                triggerImport() {
+                    this.$refs.fileInput.click();
+                },
+                async handleFile(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    try {
+                        const text = await file.text();
+                        const results = Papa.parse(text, {
+                            header: true,
+                            skipEmptyLines: true
+                        });
+
+                        const newData = results.data.map(row => ({
+                            question: row['问题']?.trim() || '',
+                            answer: row['答案']?.trim() || '',
+                            category: INITIAL_CATEGORIES.includes(row['分类']?.trim()) 
+                                ? row['分类'].trim() 
+                                : '未分类'
+                        })).filter(item => item.question);
+
+                        this.qaList = newData.slice(0, 200);
+                        this.saveData();
+                        alert(`✅ 成功导入 ${newData.length} 条数据`);
+                    } catch (error) {
+                        alert(`❌ 导入失败: ${error.message}`);
+                    }
+                },
+                exportData(type) {
+                    if (type === 'excel') {
+                        const ws = XLSX.utils.json_to_sheet(
+                            this.qaList.map(q => ({
+                                '问题': q.question,
+                                '答案': q.answer,
+                                '分类': q.category
+                            }))
+                        );
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "问答数据");
+                        XLSX.writeFile(wb, `知识库_${new Date().toISOString().slice(0,10)}.xlsx`);
+                    }
+                },
+                saveData() {
+                    localStorage.setItem('qaData', JSON.stringify(this.qaList));
+                },
+                performSearch() {
+                    this.showSearchResults = true;
+                    this.selectedCategory = null;
+                },
+                highlightText(text) {
+                    const regex = new RegExp(`(${this.searchKeyword})`, 'gi');
+                    return text.replace(regex, '<span class="highlight">$1</span>');
+                },
+                generateId(question) {
+                    return question.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+                },
+                jumpToQuestion(result) {
+                    this.selectedCategory = result.category;
+                    this.showSearchResults = false;
+                    this.searchKeyword = '';
+                    
+                    this.$nextTick(() => {
+                        const element = document.getElementById(`qa-${this.generateId(result.question)}`);
+                        if (element) {
+                            element.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                            element.style.animation = 'highlight 1.5s';
+                        }
+                    });
+                },
+                returnToHome() {
+                    this.selectedCategory = null;
+                    this.showSearchResults = false;
+                }
+            },
+            mounted() {
+                if (this.qaList.length === 0) {
+                    this.qaList = [
+                        {
+                            question: "深度学习与机器学习的区别？",
+                            answer: "深度学习是机器学习的一个子领域...",
+                            category: "人工智能"
+                        },
+                        {
+                            question: "RESTful API设计原则？",
+                            answer: "基于HTTP协议的资源导向设计...",
+                            category: "后端开发"
+                        }
+                    ];
+                    this.saveData();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
